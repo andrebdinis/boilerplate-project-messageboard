@@ -10,6 +10,60 @@ const runner            = require('./test-runner');
 
 const app = express();
 
+//----------------------------------------------------------
+
+// Connects to MongoDB ------------------------- added!
+require('./database/connection.js')
+
+// HTTP or HTTPS protocol ------------------------- added!
+/*// This environment variable (process.env.httpOrHttps) was created by me to set redirection url's to:
+// - Protocol "HTTP" when the functional tests are running (for the fcc functional tests to pass, my functional tests can only redirect to HTTP)
+// - Protocol "HTTPS" when the functional tests are stopped (for the fcc remaining tests to pass, my logic can only redirect to HTTPS)
+process.env.httpOrHttps = "https"*/
+
+// WHY I INSTALLED NODEMON ------------------------- added!
+/*// Replit.com's console sometimes would erase all the console logs, almost immediately, including recent errors, which I could not see because it would re-load automatically without having the time to stop and read the error(s). I installed nodemon because it stopped when an error is thrown, and it will not restart until you change something. Set in package.json file a "--delay 50" (50 seconds) until auto-restarts*/
+
+// PROCESS.ON('WARNING', ...)
+/*// This function allows to show deprecation warning stack when it's not appearing on the console. It was necessary due to the following thrown error:
+// [DEP0066] DeprecationWarning: OutgoingMessage.prototype._headers is deprecated
+// With the stack warning I could trace it to "node_modules/super-agent/lib/node/index.js:419 and 427", where I replaced ._headers for .getHeaders()*/
+/*process.on('warning', (warning) => {
+    console.log(warning.stack);
+});*/
+
+//----------------------------------------------------------
+
+// Security Features with HELMET ------------------------- added!
+const helmet = require('helmet')
+
+// app.use helmet (extended version)
+app.use(helmet({
+    contentSecurityPolicy: {
+      //useDefaults: true,
+      directives: {
+        defaultSrc: ["'self'"],
+        frameSrc: ["'self'"] // only allow your site to be loaded in an iFrame on your own pages
+      }
+    },
+    referrerPolicy: { // only allow your site to send the referrer for your own pages
+      policy: 'same-origin'
+    },
+    dnsPrefetchControl: { // do not allow DNS prefetching
+      allow: false
+    }
+}));
+
+// app.use helmet (short version)
+// 1. only allow your site to be loaded in an iFrame on your own pages
+//app.use(helmet.frameguard({ action: 'sameorigin' } ));
+// 2. only allow your site to send the referrer for your own pages
+//app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
+// 3. do not allow DNS prefetching
+//app.use(helmet.dnsPrefetchControl({ allow: false }));
+
+//----------------------------------------------------------
+
 app.use('/public', express.static(process.cwd() + '/public'));
 
 app.use(cors({origin: '*'})); //For FCC testing purposes only
